@@ -1,0 +1,144 @@
+name: AddSettingV1Sample
+description: This is the sample of adding settings for V1 API.
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#AddSetting").click(() => tryCatch(AddSetting));
+        $("#AddSettingChangedEvent").click(() => tryCatch(AddingSettingChangedEvent));
+        $("#OnChangedSetting").click(() => tryCatch(OnChangedSetting));
+        $("#UpdateSetting").click(() => tryCatch(UpdateSetting));
+        $("#SaveSetting").click(() => tryCatch(SaveSetting));
+        $("#RetrieveSetting").click(() => tryCatch(RetrieveSetting));
+        $("#DeleteSetting").click(() => tryCatch(DeleteSetting));
+
+        async function AddSetting() {
+            var settingKey = "key_update"; // or key_delete
+            var settingValue = "val1";
+
+            await Excel.run(function (ctx) {
+                ctx.workbook.settings.add(settingKey, settingValue);
+                var setting = ctx.workbook.settings.getItem(settingKey);
+                ctx.load(setting);
+                return ctx.sync()
+                    .then(function () {
+                         console.log("Added new Setting: " + settingKey);
+                    });
+            })
+            .then(() => {
+                console.log("passed");
+            })
+            .catch(() => {
+                console.log("failed");
+            });
+        }
+
+        async function AddingSettingChangedEvent() { 
+            Office.context.document.settings.addHandlerAsync(Office.EventType.SettingsChanged, MyHandler);
+            function MyHandler(eventArgs) {
+                console.log('Event raised: ' + eventArgs.type);
+            }
+        }
+
+        async function OnChangedSetting() {
+            await Excel.run(async (context) => {
+                console.log("handler ran");  // DOES NOT RUN
+                await context.sync();
+            });
+        }
+
+        async function UpdateSetting() {
+            var settingKey = "key_update"; // or key_delete
+            var settingValue = "val2";
+            Excel.run(function (ctx) {
+                ctx.workbook.settings.add(settingKey, settingValue);
+                var setting = ctx.workbook.settings.getItem(settingKey);
+                setting.value = settingValue;
+                ctx.load(setting);
+                return ctx.sync()
+                    .then(function () {
+                        console.log("Updated Setting: " + settingKey);
+                    });
+            })
+                .then(() => {
+                    console.log("passed");
+                })
+                .catch(() => {
+                    console.log("failed");
+                });
+        }
+
+        async function SaveSetting() {
+            //Office.context.document.settings.set("mySetting", "mySetting value");
+            Office.context.document.settings.saveAsync(function (asyncResult) {
+                console.log('Settings saved with status: ', asyncResult.status);
+            }); 
+        }
+
+        async function DeleteSetting() {
+            var settingKey = "key_update"; // or key_delete
+            await Excel.run(async (context) => {
+                var setting = context.workbook.settings.getItem(settingKey);
+                context.load(setting);
+                setting.delete();
+                await context.sync().then(function () {
+                    console.log("delete the setting: " + setting.value);
+                })
+                    .then(() => {
+                        console.log("passed");
+                })
+                    .catch(() => {
+                        console.log("failed");
+                    });
+            });
+        }
+
+        async function RetrieveSetting() {
+            var settingKey = "key_update"; // or key_delete
+            await Excel.run(async (context) => {
+                var setting = context.workbook.settings.getItem(settingKey);
+                context.load(setting);
+                await context.sync().then(function () {
+                    console.log("Retrieve Setting: " + setting.value);
+                })
+                    .then(() => {
+                        console.log("passed");
+                    })
+                    .catch(() => {
+                        console.log("failed");
+                    });
+            });
+        }
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to add a setting and then change it.</p>\n</section>\n\n<section class=\"AddSetting ms-font-m\">\n\t<h3>Add Setting</h3>\n\t<button id=\"AddSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"AddSettingChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting Change Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"OnChangedSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Receive Setting Changed Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Update Setting.</p>\n\t<button id=\"UpdateSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Save Setting.</p>\n\t<button id=\"SaveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Save Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Retrieve Settings.</p>\n\t<button id=\"RetrieveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Delete Settings.</p>\n\t<button id=\"DeleteSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Delete Setting</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |
+        /* Your style goes here */
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery

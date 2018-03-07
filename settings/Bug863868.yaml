@@ -1,0 +1,92 @@
+name: SettingsChanged
+description: This is the script to repro the bug 863868
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#createSetting").click(() => tryCatch(createSetting));
+        $("#onChangedSetting").click(() => tryCatch(onChangedSetting));
+        $("#changeSetting").click(() => tryCatch(changeSetting));
+
+        async function createSetting() {
+            try {
+                await Excel.run(async (context) => {
+                    const settings = context.workbook.settings;
+                    settings.add("NeedsReview", true);
+                    settings.onSettingsChanged.add(onChangedSetting);
+                    console.log("Create Settings");  // DOES NOT RUN
+                    console.log(settings.getCount());
+                    await context.sync();
+                    
+                });
+            }
+            catch (error) {
+                console.log(error.message);
+            }
+        }
+
+        async function onChangedSetting() {
+            try {
+                await Excel.run(async (context) => {
+                    console.log("handler ran");  // DOES NOT RUN
+                    await context.sync();
+                });
+            }
+            catch (error) {
+                console.log(error.message);
+            }
+        } 
+
+        async function changeSetting() {
+            try {
+                await Excel.run(async (context) => {
+                    const settings = context.workbook.settings;
+
+                    // The settings.add function is also how you change a 
+                    // setting. There is no Excel.SettingCollection.setItem
+                    // or Excel.Setting.set method.
+                    settings.add("NeedsReview", true); // Change value
+                    console.log("Setting Changed");  // DOES NOT RUN
+                    await context.sync();
+                });
+            }
+            catch (error) {
+                console.log(error.message);
+            }
+        }
+
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"onChangedSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">On ChangedSetting</span>\n    </button>\n</section>\n\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting.</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |+
+        /* Your style goes here */
+
+
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery
