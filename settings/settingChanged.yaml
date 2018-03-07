@@ -1,0 +1,105 @@
+name: settingChanged
+description: This is the script to test the setting changed event
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#createSettings").click(() => tryCatch(createSettings));
+        $("#retrieveSettings").click(() => tryCatch(retrieveSettings));
+        $("#updateSettingRichAPI").click(() => tryCatch(updateSettingRichApi));
+        $("#updateSettingV1API").click(() => tryCatch(updateSettingV1Api));
+
+        async function createSettings() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                console.log("Create Settings");
+                settings.add("SettingKey1", "S1");
+                settings.add("SettingKey2", "S2");
+                settings.add("SettingKey3", "S3");
+                context.load(settings);
+                var count = settings.getCount();
+                await context.sync().then(function () {
+                    console.log(count);
+                });
+            });
+        }
+
+        async function retrieveSettings() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                var settingKey1 = "SettingKey1";
+                var settingKey2 = "SettingKey2";
+                var settingKey3 = "SettingKey3";        
+                var setting1 = context.workbook.settings.getItem(settingKey1);
+                var setting2 = context.workbook.settings.getItem(settingKey2);
+                var setting3 = context.workbook.settings.getItem(settingKey3);
+                context.load(setting1);
+                context.load(setting2);
+                context.load(setting3);
+
+                await context.sync().then(function () {
+                    console.log("Retrieve Setting: " + setting1.value);
+                    console.log("Retrieve Setting: " + setting2.value);
+                    console.log("Retrieve Setting: " + setting3.value);
+                    console.log(settings.getCount());
+                })
+                    .catch((error) => {
+                        console.log(settings.getCount());                
+                        console.log(error);
+                    });
+            });
+        }
+
+        async function updateSettingRichApi() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                settings.add("SettingKey3", "Key3Rich");
+                await context.sync().then(function () { 
+                    console.log("Update Settings: RichAPI");
+                    console.log(settings.getCount());  
+                });
+            });
+        }
+
+        async function updateSettingV1Api() {
+            await Excel.run(async (context) => {
+                Office.context.document.settings.set("SettingKey3", "Key3v1");
+                Office.context.document.settings.saveAsync(() => {
+                    console.log("Update Settings: V1API");
+                });
+            });
+        }
+
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSettings\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Settings</span>\n    </button>\n</section>\n\n<section class=\"retrieveSetting ms-font-m\">\n\t<h3>Retrieve Setting</h3>\n\t<button id=\"retrieveSettings\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Settings</span>\n    </button>\n</section>\n\n<section class=\"UpdateSetting samples ms-font-m\">\n\t<h3>Update Setting</h3>\n\t<button id=\"updateSettingRichAPI\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting RichAPI</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"updateSettingV1API\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting V1API</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |
+        /* Your style goes here */
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery
