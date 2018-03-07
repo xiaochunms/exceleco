@@ -1,0 +1,79 @@
+name: RegisterSettingChangedEvent
+description: 'This is the script to register setting changed event, which can raise the setting changed event once there is setting changed happened. '
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#run").click(() => tryCatch(run));
+        $("#AddSettingChangedEvent").click(() => tryCatch(AddingSettingChangedEvent));
+        $("#EnableEvents").click(() => tryCatch(EnableEvents));
+        $("#DisableEvents").click(() => tryCatch(DisableEvents));
+
+        async function run() {
+            var settingKey = "key_update"; // or key_delete
+            await Excel.run(async (context) => {
+                var setting = context.workbook.settings.getItem(settingKey);
+                context.load(setting);
+                await context.sync().then(function () {
+                    console.log("Retrieve Setting: " + setting.value);
+                });
+            });
+        }
+
+        async function AddingSettingChangedEvent() {
+            Office.context.document.settings.addHandlerAsync(Office.EventType.SettingsChanged, MyHandler);
+            function MyHandler(eventArgs) {
+                console.log('Event raised: ' + eventArgs.type);
+            }
+        }
+
+        async function EnableEvents() {
+            await Excel.run(async (context) => {
+                context.runtime.enableEvents = true;
+                await context.sync().then(function () {
+                    console.log("Events enabled " + context.runtime.enableEvents);
+                });
+            });
+        }
+
+        async function DisableEvents() {
+            await Excel.run(async (context) => {
+                context.runtime.enableEvents = false;
+                await context.sync().then(function () {
+                    console.log("Events disabled: " + context.runtime.enableEvents);
+                });
+            });
+        }
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<button id=\"run\" class=\"ms-Button\">\n    <span class=\"ms-Button-label\">Run</span>\n</button>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"AddSettingChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting Change Event</span>\n    </button>\n</section>\n\n<button id=\"EnableEvents\" class=\"ms-Button\">\n    <span class=\"ms-Button-label\">Enable Events</span>\n</button>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"DisableEvents\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Disable Events</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |
+        /* Your style goes here */
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/beta/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/beta/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery
