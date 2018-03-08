@@ -48,6 +48,10 @@ script:
                     settings.add("NeedsReview", true); // Change value
                     console.log("Setting Changed");  // DOES NOT RUN
                     await context.sync();
+                    //Office.context.document.settings.set("NeedsReview", false);
+                    //Office.context.document.settings.saveAsync(() => {
+                    //    console.log("Setting Changed");
+                    //});
                 });
             }
             catch (error) {
