@@ -1,18 +1,19 @@
-name: settingChanged
+name: settingChanged - 1
 description: This is the script to test the setting changed event
 host: EXCEL
 api_set: {}
 script:
     content: |
-        $("#createSettings").click(() => tryCatch(createSettings));
+        $("#createSettingsRichApi").click(() => tryCatch(createSettingsRichApi));
+        $("#createSettingsV1Api").click(() => tryCatch(createSettingsV1Api));
         $("#retrieveSettings").click(() => tryCatch(retrieveSettings));
         $("#updateSettingRichAPI").click(() => tryCatch(updateSettingRichApi));
         $("#updateSettingV1API").click(() => tryCatch(updateSettingV1Api));
 
-        async function createSettings() {
+        async function createSettingsRichApi() {
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
-                console.log("Create Settings");
+                console.log("Create Settings RichApi");
                 settings.add("SettingKey1", "S1");
                 settings.add("SettingKey2", "S2");
                 settings.add("SettingKey3", "S3");
@@ -24,23 +25,40 @@ script:
             });
         }
 
+        async function createSettingsV1Api() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                Office.context.document.settings.set("SettingKey1", "V1S1");
+                Office.context.document.settings.set("SettingKey2", "V1S2");
+                Office.context.document.settings.set("SettingKey3", "V1S3New");
+                Office.context.document.settings.set("SettingKey4", "V1S4");
+                Office.context.document.settings.saveAsync(() => {
+                    console.log("Create Settings: V1API");
+                });
+            });
+        }
+
         async function retrieveSettings() {
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
                 var settingKey1 = "SettingKey1";
                 var settingKey2 = "SettingKey2";
-                var settingKey3 = "SettingKey3";        
+                var settingKey3 = "SettingKey3";      
+                var settingKey4 = "SettingKey4";     
                 var setting1 = context.workbook.settings.getItem(settingKey1);
                 var setting2 = context.workbook.settings.getItem(settingKey2);
                 var setting3 = context.workbook.settings.getItem(settingKey3);
+                var setting4 = context.workbook.settings.getItem(settingKey4);
                 context.load(setting1);
                 context.load(setting2);
                 context.load(setting3);
+                context.load(setting4);
 
                 await context.sync().then(function () {
                     console.log("Retrieve Setting: " + setting1.value);
                     console.log("Retrieve Setting: " + setting2.value);
                     console.log("Retrieve Setting: " + setting3.value);
+                    console.log("Retrieve Setting: " + setting4.value);
                     console.log(settings.getCount());
                 })
                     .catch((error) => {
@@ -53,7 +71,7 @@ script:
         async function updateSettingRichApi() {
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
-                settings.add("SettingKey3", "Key3Rich");
+                settings.add("SettingKey4", "Key4Rich");
                 await context.sync().then(function () { 
                     console.log("Update Settings: RichAPI");
                     console.log(settings.getCount());  
@@ -63,6 +81,9 @@ script:
 
         async function updateSettingV1Api() {
             await Excel.run(async (context) => {
+                Office.context.document.settings.refreshAsync(function (asyncResult) {
+                    console.log("Settings refreshed with status: ", asyncResult.status);
+                }); 
                 Office.context.document.settings.set("SettingKey3", "Key3v1");
                 Office.context.document.settings.saveAsync(() => {
                     console.log("Update Settings: V1API");
@@ -82,7 +103,7 @@ script:
         }
     language: typescript
 template:
-    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSettings\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Settings</span>\n    </button>\n</section>\n\n<section class=\"retrieveSetting ms-font-m\">\n\t<h3>Retrieve Setting</h3>\n\t<button id=\"retrieveSettings\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Settings</span>\n    </button>\n</section>\n\n<section class=\"UpdateSetting samples ms-font-m\">\n\t<h3>Update Setting</h3>\n\t<button id=\"updateSettingRichAPI\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting RichAPI</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"updateSettingV1API\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting V1API</span>\n    </button>\n</section>"
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSettingsRichApi\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Settings RichAPI</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"createSettingsV1Api\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting V1API</span>\n    </button>\n</section>\n\n<section class=\"retrieveSetting ms-font-m\">\n\t<h3>Retrieve Setting</h3>\n\t<button id=\"retrieveSettings\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Settings</span>\n    </button>\n</section>\n\n<section class=\"UpdateSetting samples ms-font-m\">\n\t<h3>Update Setting</h3>\n\t<button id=\"updateSettingRichAPI\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting RichAPI</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"updateSettingV1API\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Update Setting V1API</span>\n    </button>\n</section>"
     language: html
 style:
     content: |
