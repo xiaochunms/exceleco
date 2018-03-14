@@ -1,0 +1,81 @@
+name: settingChanged
+description: This is the script to test the setting changed event
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#createSetting").click(() => tryCatch(createSetting));
+        $("#addSettingChangedEventHandler").click(() => tryCatch(addSettingChangedEventHandler));
+        $("#changeSetting").click(() => tryCatch(changeSetting));
+        $("#removeSetting").click(() => tryCatch(removeSetting));
+        $("#retrieveSetting").click(() => tryCatch(retrieveSetting));
+
+        async function createSetting() {
+                    Office.context.document.settings.set("mySetting", "mySetting value");
+                    Office.context.document.settings.saveAsync(function (asyncResult) {
+                        console.log("Setting Added");
+                    });
+        }
+
+        async function addSettingChangedEventHandler() {
+                await Excel.run(async (context) => {
+                    Office.context.document.settings.addHandlerAsync(Office.EventType.SettingsChanged, MyHandler);
+                    function MyHandler(eventArgs) {
+                        console.log('Event raised: ' + eventArgs.type);
+                    }
+                });
+        }
+
+        async function changeSetting() {
+                    Office.context.document.settings.set("mySetting", "mySetting value changed");
+                    Office.context.document.settings.saveAsync(() => {
+                        console.log("Setting Changed");  
+                    });
+        }
+
+        async function removeSetting() {
+            var setting = Office.context.document.settings.get("mySetting");
+            Office.context.document.settings.remove("mySetting");
+            Office.context.document.settings.saveAsync(() => {
+                console.log("Setting " + setting + " is removed");
+            });
+        }
+
+        async function retrieveSetting() {
+                var setting = Office.context.document.settings.get("mySetting");
+
+                console.log("Setting is: " + setting);  
+        }
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"addSettingChangedEventHandler\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting Changed Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting.</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Remove setting.</p>\n\t<button id=\"removeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Remove Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Retrieve setting.</p>\n\t<button id=\"retrieveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Setting</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |
+        /* Your style goes here */
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery
