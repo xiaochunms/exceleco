@@ -1,0 +1,111 @@
+name: SettingsChangedRichAPI
+description: This is the script to repro the bug 863868
+author: xiaochunms
+host: EXCEL
+api_set: {}
+script:
+    content: |
+        $("#createSetting").click(() => tryCatch(createSetting));
+        $("#registerSettingsChangedEvent").click(() => tryCatch(registerSettingsChangedEvent));
+        $("#onChangedSetting").click(() => tryCatch(onChangedSetting));
+        $("#changeSetting").click(() => tryCatch(changeSetting));
+        $("#changeSettingByValue").click(() => tryCatch(changeSettingByValue));
+        $("#deleteSetting").click(() => tryCatch(deleteSetting));
+
+        async function createSetting() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                settings.add("NeedsReview", true);
+                console.log("Create Settings");
+                await context.sync();            
+            });
+        }
+
+        async function registerSettingsChangedEvent() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                settings.onSettingsChanged.add(onChangedSetting);
+                console.log("Register SettingsChanged Event");
+                await context.sync();
+            });
+        }
+
+        async function onChangedSetting() {
+            await Excel.run(async (context) => {
+                console.log("SettingsChanged Event raised!");
+                await context.sync();
+            });
+        } 
+
+        async function changeSetting() {
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                settings.add("NeedsReview", true); // Change value
+                console.log("Setting Changed");
+                await context.sync();
+            });
+        }
+
+        async function changeSettingByValue() {
+            var settingKey = "NeedsReview";
+            var settingVal = "false";
+            await Excel.run(async (context) => {
+                const settings = context.workbook.settings;
+                var setting = settings.getItem(settingKey);
+                setting.value = settingVal;
+                context.load(setting);
+                console.log("Setting Changed by Value");        
+                await context.sync();
+            });
+        }
+
+        async function deleteSetting() {
+            try {
+                var settingKey = "NeedsReview";
+                await Excel.run(async (context) => {
+                    var setting = context.workbook.settings.getItem(settingKey);
+                    context.load(setting);
+                    setting.delete(); 
+                    console.log("Delete Setting");
+                    await context.sync();
+                });
+            }
+            catch (error) {
+                console.log(error.message);
+            }
+        }
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it via RichAPI.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"registerSettingsChangedEvent ms-font-m\">\n\t<h3>Register SettingsChanged Event</h3>\n\t<button id=\"registerSettingsChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Register SettingsChanged Event</span>\n    </button>\n</section>\n\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"onChangedSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">On ChangedSetting</span>\n    </button>\n</section>\n\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting By Value</p>\n\t<button id=\"changeSettingByValue\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting By Value</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Delete setting.</p>\n\t<button id=\"deleteSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Delete Setting</span>\n    </button>\n</section>"
+    language: html
+style:
+    content: |+
+        /* Your style goes here */
+
+
+    language: css
+libraries: |
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.d.ts
+
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+
+    core-js@2.4.1/client/core.min.js
+    @types/core-js
+
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts
+
+    jquery@3.1.1
+    @types/jquery

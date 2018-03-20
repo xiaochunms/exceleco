@@ -1,5 +1,5 @@
 name: settingChanged
-description: This is the script to test the setting changed event
+description: This is the script to test the SettingsChanged event via V1 API
 host: EXCEL
 api_set: {}
 script:

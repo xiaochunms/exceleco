@@ -1,5 +1,5 @@
-name: AddSettingV1Sample
-description: This is the sample of adding settings for V1 API.
+name: AddSettingRichAPISample
+description: This is the sample of adding settings via RichAPI.
 host: EXCEL
 api_set: {}
 script:
