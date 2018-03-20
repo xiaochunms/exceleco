@@ -1,11 +1,13 @@
 name: settingChanged
 description: This is the script to test the SettingsChanged event via V1 API
+author: xiaochunms
 host: EXCEL
 api_set: {}
 script:
     content: |
         $("#createSetting").click(() => tryCatch(createSetting));
         $("#addSettingChangedEventHandler").click(() => tryCatch(addSettingChangedEventHandler));
+        $("#removeSettingChangedEventHandler").click(() => tryCatch(removeSettingChangedEventHandler));
         $("#changeSetting").click(() => tryCatch(changeSetting));
         $("#removeSetting").click(() => tryCatch(removeSetting));
         $("#retrieveSetting").click(() => tryCatch(retrieveSetting));
@@ -20,10 +22,13 @@ script:
         async function addSettingChangedEventHandler() {
                 await Excel.run(async (context) => {
                     Office.context.document.settings.addHandlerAsync(Office.EventType.SettingsChanged, MyHandler);
-                    function MyHandler(eventArgs) {
-                        console.log('Event raised: ' + eventArgs.type);
-                    }
                 });
+        }
+
+        async function removeSettingChangedEventHandler() {
+            await Excel.run(async (context) => {
+                Office.context.document.settings.removeHandlerAsync(Office.EventType.SettingsChanged, MyHandler);
+            });
         }
 
         async function changeSetting() {
@@ -46,6 +51,11 @@ script:
 
                 console.log("Setting is: " + setting);  
         }
+
+        async function MyHandler(eventArgs) {
+            console.log('Event raised: ' + eventArgs.type);
+        }
+
         /** Default helper for invoking an action and handling errors. */
         async function tryCatch(callback) {
             try {
@@ -58,7 +68,7 @@ script:
         }
     language: typescript
 template:
-    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"addSettingChangedEventHandler\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting Changed Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting.</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Remove setting.</p>\n\t<button id=\"removeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Remove Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Retrieve setting.</p>\n\t<button id=\"retrieveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Setting</span>\n    </button>\n</section>"
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"addSettingChangedEventHandler\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Add Setting Changed Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"removeSettingChangedEventHandler\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Remove Setting Changed Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting.</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Remove setting.</p>\n\t<button id=\"removeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Remove Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Retrieve setting.</p>\n\t<button id=\"retrieveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Setting</span>\n    </button>\n</section>"
     language: html
 style:
     content: |
