@@ -1,6 +1,5 @@
 name: SettingsChangedRichAPI
 description: This is the script to repro the bug 863868
-author: xiaochunms
 host: EXCEL
 api_set: {}
 script:
@@ -12,12 +11,13 @@ script:
         $("#changeSetting").click(() => tryCatch(changeSetting));
         $("#changeSettingByValue").click(() => tryCatch(changeSettingByValue));
         $("#deleteSetting").click(() => tryCatch(deleteSetting));
+        $("#retrieveSetting").click(() => tryCatch(retrieveSetting));
 
         var evtHandler;
         async function createSetting() {
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
-                settings.add("NeedsReview", true);
+                settings.add("NeedsReview", "cs");
                 console.log("Create Settings");
                 await context.sync();            
             });
@@ -50,7 +50,7 @@ script:
         async function changeSetting() {
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
-                settings.add("NeedsReview", true); // Change value
+                settings.add("NeedsReview", "changed"); // Change value
                 console.log("Setting Changed");
                 await context.sync();
             });
@@ -58,7 +58,7 @@ script:
 
         async function changeSettingByValue() {
             var settingKey = "NeedsReview";
-            var settingVal = "false";
+            var settingVal = "changed again";
             await Excel.run(async (context) => {
                 const settings = context.workbook.settings;
                 var setting = settings.getItem(settingKey);
@@ -70,20 +70,33 @@ script:
         }
 
         async function deleteSetting() {
-            try {
-                var settingKey = "NeedsReview";
-                await Excel.run(async (context) => {
-                    var setting = context.workbook.settings.getItem(settingKey);
-                    context.load(setting);
-                    setting.delete(); 
-                    console.log("Delete Setting");
-                    await context.sync();
-                });
-            }
-            catch (error) {
-                console.log(error.message);
-            }
+            var settingKey = "NeedsReview";
+            await Excel.run(async (context) => {
+                var setting = context.workbook.settings.getItem(settingKey);
+                context.load(setting);
+                setting.delete(); 
+                console.log("Delete Setting");
+                await context.sync();
+            });
         }
+
+        async function retrieveSetting() {
+            var settingKey = "NeedsReview";
+            await Excel.run(async (context) => {
+                var setting = context.workbook.settings.getItem(settingKey);
+                context.load(setting);
+                await context.sync().then(function () {
+                    console.log("Retrieve Setting: " + setting.value);
+                })
+                    .then(() => {
+                        console.log("passed");
+                    })
+                    .catch(() => {
+                        console.log("failed");
+                    });
+            });
+        }
+
         /** Default helper for invoking an action and handling errors. */
         async function tryCatch(callback) {
             try {
@@ -96,7 +109,7 @@ script:
         }
     language: typescript
 template:
-    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it via RichAPI.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"registerSettingsChangedEvent ms-font-m\">\n\t<h3>Register SettingsChanged Event</h3>\n\t<button id=\"registerSettingsChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Register SettingsChanged Event</span>\n    </button>\n</section>\n\n<section class=\"unregisterSettingsChangedEvent ms-font-m\">\n\t<button id=\"unregisterSettingsChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Un-Register SettingsChanged Event</span>\n    </button>\n</section>\n\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"onChangedSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">On ChangedSetting</span>\n    </button>\n</section>\n\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting By Value</p>\n\t<button id=\"changeSettingByValue\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting By Value</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Delete setting.</p>\n\t<button id=\"deleteSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Delete Setting</span>\n    </button>\n</section>"
+    content: "<section class=\"ms-font-m\">\n\t<p>This sample shows how to create a setting and then change it via RichAPI.</p>\n</section>\n\n<section class=\"createSetting ms-font-m\">\n\t<h3>Create Setting</h3>\n\t<button id=\"createSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Create Setting</span>\n    </button>\n</section>\n\n<section class=\"registerSettingsChangedEvent ms-font-m\">\n\t<h3>Register SettingsChanged Event</h3>\n\t<button id=\"registerSettingsChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Register SettingsChanged Event</span>\n    </button>\n</section>\n\n<section class=\"unregisterSettingsChangedEvent ms-font-m\">\n\t<button id=\"unregisterSettingsChangedEvent\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Un-Register SettingsChanged Event</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<button id=\"onChangedSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">On ChangedSetting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting</p>\n\t<button id=\"changeSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Change setting By Value</p>\n\t<button id=\"changeSettingByValue\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Change Setting By Value</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t<p>Delete setting</p>\n\t<button id=\"deleteSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Delete Setting</span>\n    </button>\n</section>\n\n<section class=\"samples ms-font-m\">\n\t\t<p>Retrieve setting</p>\n\t\t<button id=\"retrieveSetting\" class=\"ms-Button\">\n        <span class=\"ms-Button-label\">Retrieve Setting</span>\n        </button>\n</section>\n    </button>\n</section>"
     language: html
 style:
     content: |+
